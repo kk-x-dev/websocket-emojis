@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Chat</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    #messages { list-style-type: none; padding: 0; max-height: 300px; overflow-y: auto; border: 1px solid #ccc; margin-bottom: 10px; padding: 10px; }
+    #messages li { padding: 5px; margin-bottom: 5px; background: #f3f3f3; border-radius: 4px; }
+    #form { display: flex; gap: 10px; }
+    #input { flex-grow: 1; padding: 10px; }
+    button { padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h2>Real-Time Chat App</h2>
+  <ul id="messages"></ul>
+  
+  <form id="form" action="">
+    <input id="input" autocomplete="off" placeholder="Type a message..." /><button type="submit">Send</button>
+  </form>
+
+  <!-- Import the Socket.IO client library served automatically by our backend server -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Establish connection to the server
+    const socket = io();
+
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const messages = document.getElementById('messages');
+
+    // Handle form submission to send a message
+    form.addEventListener('submit', (e) => {
+        console.log("form submit called")
+      e.preventDefault();
+      if (input.value) {
+        console.log("emit is called")
+        // Emit a custom chat event to the server
+        socket.emit('chat_message', input.value);
+        input.value = '';
+      }
+    });
+
+     // Listen for incoming messages object from the server
+    socket.on('chat_message', (data) => {
+      const item = document.createElement('li');
+      item.textContent = data.text;
+      
+      // Basic styling for padding and margin
+      item.style.padding = '8px 12px';
+      item.style.margin = '6px 0';
+      item.style.borderRadius = '6px';
+      item.style.listStyleType = 'none';
+      item.style.width = 'fit-content';
+      item.style.maxWidth = '70%';
+
+      // Differentiate message source using senderId
+      if (data.senderId === socket.id) {
+        // Messages sent by THIS browser window (Right side, Light Blue)
+        item.style.backgroundColor = '#e3f2fd'; 
+        item.style.marginLeft = 'auto'; // Push to the right
+        item.style.border = '1px solid #90caf9';
+      } else {
+        // Messages received from OTHER browser windows (Left side, Light Gray)
+        item.style.backgroundColor = '#f5f5f5'; 
+        item.style.marginRight = 'auto'; // Stay on the left
+        item.style.border = '1px solid #e0e0e0';
+      }
+
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight; 
+    });
+  </script>
+</body>
+</html>
