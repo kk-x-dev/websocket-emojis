@@ -3,7 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path'
 import { fileURLToPath } from 'url';
-
+import fs from 'fs'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,7 +23,15 @@ const io = new Server(httpServer, {
 
 // A simple HTTP route to test that the server is running
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+  // 1. Try to find it in the same directory (Works in Production/dist)
+  let htmlPath = path.join(__dirname, 'index.html');
+  
+  // 2. Fallback if running via dev mode (Works in Local Dev/src)
+  if (!fs.existsSync(htmlPath)) {
+    htmlPath = path.join(__dirname, '..', 'src', 'index.html');
+  }
+  
+  res.sendFile(htmlPath);
 });
 
 // Listen for incoming WebSocket connections
